@@ -7,6 +7,8 @@
 
 import math, winsound, webbrowser
 import gc #importing a module to find instances - i.e. find pieces by location
+import ai
+
 try:
     from tkinter import * #import tkinter module for the GUI, python 3.x
     from tkinter import messagebox
@@ -730,7 +732,8 @@ class Pieces:
                     self.board[i]["command"] = obj.showLegalMoves #to that square
 
         game.turn.reverse() #other player's turn
-
+        if playAI.get() is True:
+            ai.randMove()
         if game.turn[0] == "W": #so that the player looks at the board from their colour's perspective
             game.btn1.config(text="White to play", bg="linen", fg="black")
 
@@ -1187,7 +1190,7 @@ class Chess:
 
 #setting up the GUI
 def menu():
-    global master, root, boardFlip
+    global master, root, boardFlip, playAI
     master=Tk()
     master.title("Chess")
     master.resizable(0,0)
@@ -1200,15 +1203,18 @@ def menu():
     root.geometry("725x675")
     root.withdraw()
     boardFlip = BooleanVar(master, value=False)
+    playAI = BooleanVar(master, value=True)
     lbl = Label(master, text="Chess", font=("MS Serif", "24", "bold"), bg="tan4", fg="ivory2")
     lbl.pack(fill=X)
     btn1 = Button(master, text="Start Game", font="Verdana 18", command=lambda: start(master, root))
     btn1.pack(fill=X)
-    bFlip = Checkbutton(master, text="Auto-flip board", font="Verdana 18", variable=boardFlip)
+    btn2 = Checkbutton(master, text="Play against comuter", font="Verdana 14", variable=playAI)
+    btn2.pack(fill=X)
+    bFlip = Checkbutton(master, text="Auto-flip board", font="Verdana 14", variable=boardFlip)
     bFlip.pack(fill=X)
-    btn2 = Button(master, text="How to play", font="Verdana 18", bd=0, \
+    btn3 = Button(master, text="How to play", font="Verdana 18", bd=0, \
                   command=lambda:webbrowser.open_new("https://www.chess.com/learn-how-to-play-chess"))
-    btn2.pack(fill=X, side=BOTTOM)
+    btn3.pack(fill=X, side=BOTTOM)
     
 def start(master, root): #starts the program by creating the GUI windows
     global game
@@ -1227,3 +1233,4 @@ if __name__ == "__main__":
         if messagebox.askokcancel("Chess", """Are you sure you want to quit? \nYour game will not be saved""") \
         else False)
     master.mainloop()
+
