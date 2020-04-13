@@ -40,8 +40,7 @@ class Pieces:
         elif type(self).__name__ is "King":
             self.castling = False
 
-        self.pieces.append(self) #keeping track of all the pieces in a list
-
+        self.__class__.pieces.append(self) #keeping track of all the pieces in a list
         self.alph = ["a", "b", "c", "d", "e", "f", "g", "h"]
         #creating a map from numeric to alpha notation and vice versa
         self.file_rank = {a: b+1 for a, b in zip(self.alph, range(8))}
@@ -577,7 +576,7 @@ class Pieces:
         if self.dct1[self.board[newPos].text] != "":
             self.capturePiece(newPos) #captures the opponent piece at that square
             capt = True #capturing
-
+        #en-passant
         if type(self).__name__ is "Pawn" and self.enPassant is True: #capturing by en-passant - the only case where
             #a piece does not capture an opponent's piece on the destination square
             if self.colour == "B" and self.dct1[self.board[str(newPos[0])+str(int(newPos[1])+1)].text] == "wP":
@@ -617,7 +616,6 @@ class Pieces:
                         self.board[pos].text = ""
                         self.board[pos]["command"] = False
                         rook.placePiece(dest) #placing the rook at its new location
-
             except TypeError:
                 pass
 
@@ -638,7 +636,7 @@ class Pieces:
             if self.enPassant is True:
                 self.currentMove += "e.p." #keeping track of moves in standard notation, e.p. denotes en-passant capture
             self.enPassant = False
-
+        #check to see if castling has occured
         if type(self).__name__ is "King":
             try:
                 if self.castling is not False:
@@ -650,7 +648,6 @@ class Pieces:
                     self.castling = False
             except TypeError:
                 pass
-
         #checking to see if a pawn can be promoted
         if type(self).__name__ is "Pawn":
             #pawn has reached the other end of the board
@@ -658,7 +655,6 @@ class Pieces:
                 self.promote() #pawn can be promoted, i.e. traded for a more valuable piece (K/B/R/Q)
             elif self.colour == "B" and newPos[1] == "1":
                 self.promote() #pawn can be promoted, i.e. traded for a more valuable piece (K/B/R/Q)
-
 
         #place the piece being moved at its new position
         self.placePiece(newPos)
@@ -677,7 +673,6 @@ class Pieces:
                 if self.bKing.stalemate() is True: #test for stalemate
                     print("1/2-1/2", end="")
                     game.endGame("SM") #game ends by stalemate
-
         else:
             if self.wKing.underThreat() is True: #white is in check
                 checkMate = self.wKing.checkmate(self) #boolean to test for checkmate
@@ -690,7 +685,6 @@ class Pieces:
                 if self.wKing.stalemate() is True: #test for stalemate
                     print("1/2-1/2", end = "")
                     game.endGame("SM") #game ends by stalemate
-
 
         self.moves.append(self.currentMove) #keeps track of moves
 
@@ -732,8 +726,9 @@ class Pieces:
                     self.board[i]["command"] = obj.showLegalMoves #to that square
 
         game.turn.reverse() #other player's turn
-        if playAI.get() is True:
-            ai.randMove()
+
+        if playAI.get() is True and playerColour.get()!=game.turn[0]:
+            ai.randMove(Pieces.pieces, game.turn[0])
         if game.turn[0] == "W": #so that the player looks at the board from their colour's perspective
             game.btn1.config(text="White to play", bg="linen", fg="black")
 
@@ -1156,6 +1151,9 @@ class Chess:
                     if obj.position == x: #piece is at position x
                         self.boardMap[x]["command"] = buttonCommand #clicking on the piece at position x will display
                         #the piece's legal moves
+        if playAI.get() is True and playerColour.get() != game.turn[0]:
+            ai.randMove(Pieces.pieces, game.turn[0])
+
 
     def endGame(self, case, winner=None):
         #game ends by checkmate
@@ -1190,7 +1188,7 @@ class Chess:
 
 #setting up the GUI
 def menu():
-    global master, root, boardFlip, playAI
+    global master, root, boardFlip, playAI, playerColour
     master=Tk()
     master.title("Chess")
     master.resizable(0,0)
@@ -1204,18 +1202,33 @@ def menu():
     root.withdraw()
     boardFlip = BooleanVar(master, value=False)
     playAI = BooleanVar(master, value=True)
+    playerColour = StringVar(master, value="W")
     lbl = Label(master, text="Chess", font=("MS Serif", "24", "bold"), bg="tan4", fg="ivory2")
     lbl.pack(fill=X)
     btn1 = Button(master, text="Start Game", font="Verdana 18", command=lambda: start(master, root))
     btn1.pack(fill=X)
-    btn2 = Checkbutton(master, text="Play against comuter", font="Verdana 14", variable=playAI)
+    btn2 = Checkbutton(master, text="Play against computer", font="Verdana 14", variable=playAI)
     btn2.pack(fill=X)
+    lbl2 = Label(master, text="Play as", font="Verdana 12")
+    lbl2.pack()
+    fr=Frame(master)
+    fr.pack()
+    btn3 = Radiobutton(fr, text="White", font="Verdana 10", variable=playerColour, value="W")
+    btn3.pack(side="left")
+    btn4 = Radiobutton(fr, text="Black", font="Verdana 10", variable=playerColour, value="B")
+    btn4.pack(side="right")
     bFlip = Checkbutton(master, text="Auto-flip board", font="Verdana 14", variable=boardFlip)
     bFlip.pack(fill=X)
-    btn3 = Button(master, text="How to play", font="Verdana 18", bd=0, \
+    btn5 = Button(master, text="How to play", font="Verdana 18", bd=0, \
                   command=lambda:webbrowser.open_new("https://www.chess.com/learn-how-to-play-chess"))
-    btn3.pack(fill=X, side=BOTTOM)
-    
+    btn5.pack(fill=X, side=BOTTOM)
+    btn2.config(command=lambda: enable_disable)
+    #block option to play as w/b if there are two players
+    def enable_disable():
+        btn3.config(state=DISABLED if playAI.get() is False else NORMAL)
+        btn4.config(state=DISABLED if playAI.get() is False else NORMAL)
+
+    btn2.config(command=enable_disable)
 def start(master, root): #starts the program by creating the GUI windows
     global game
     master.withdraw()
@@ -1225,6 +1238,7 @@ def start(master, root): #starts the program by creating the GUI windows
     game.startGame()
     root.deiconify()
 
+
 if __name__ == "__main__":
     menu() #creates the menu
     root.bind("<Control-w>", lambda x: root.destroy())
@@ -1233,4 +1247,3 @@ if __name__ == "__main__":
         if messagebox.askokcancel("Chess", """Are you sure you want to quit? \nYour game will not be saved""") \
         else False)
     master.mainloop()
-
