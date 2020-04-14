@@ -16,7 +16,6 @@ except ImportError:
     from Tkinter import * #python 2.x
     from Tkinter import messagebox
 
-
 #Piece classes - each individual piece is an instance of this class
 class Pieces:
 
@@ -728,7 +727,7 @@ class Pieces:
         game.turn.reverse() #other player's turn
 
         if playAI.get() is True and playerColour.get()!=game.turn[0]:
-            ai.randMove(Pieces.pieces, game.turn[0])
+            ai.makeMove(levelAI.get(), Pieces.pieces, game.turn[0])
         if game.turn[0] == "W": #so that the player looks at the board from their colour's perspective
             game.btn1.config(text="White to play", bg="linen", fg="black")
 
@@ -1152,7 +1151,7 @@ class Chess:
                         self.boardMap[x]["command"] = buttonCommand #clicking on the piece at position x will display
                         #the piece's legal moves
         if playAI.get() is True and playerColour.get() != game.turn[0]:
-            ai.randMove(Pieces.pieces, game.turn[0])
+            ai.makeMove(levelAI.get(), Pieces.pieces, game.turn[0])
 
 
     def endGame(self, case, winner=None):
@@ -1188,7 +1187,7 @@ class Chess:
 
 #setting up the GUI
 def menu():
-    global master, root, boardFlip, playAI, playerColour
+    global master, root, boardFlip, playAI, playerColour, levelAI
     master=Tk()
     master.title("Chess")
     master.resizable(0,0)
@@ -1200,15 +1199,26 @@ def menu():
     root.attributes("-topmost", True)
     root.geometry("725x675")
     root.withdraw()
+    #setting variables that will control preferences throughout the game
     boardFlip = BooleanVar(master, value=False)
     playAI = BooleanVar(master, value=True)
     playerColour = StringVar(master, value="W")
+    levelAI = IntVar(master, value=1)
+    #setting up the main menu with buttons and labels to start the game and select preferences
     lbl = Label(master, text="Chess", font=("MS Serif", "24", "bold"), bg="tan4", fg="ivory2")
     lbl.pack(fill=X)
+    #starts game
     btn1 = Button(master, text="Start Game", font="Verdana 18", command=lambda: start(master, root))
     btn1.pack(fill=X)
+    #sets number of players; either 1v1 or 1vAI
     btn2 = Checkbutton(master, text="Play against computer", font="Verdana 14", variable=playAI)
     btn2.pack(fill=X)
+    #sets level of AI to play against
+    lbl3 = Label(master, text="Computer level:", font="Verdana 12")
+    lbl3.pack()
+    scl = Scale(master, from_=1, to=3, orient=HORIZONTAL, variable=levelAI)
+    scl.pack()
+    #selects player colour if playing against AI
     lbl2 = Label(master, text="Play as", font="Verdana 12")
     lbl2.pack()
     fr=Frame(master)
@@ -1217,6 +1227,7 @@ def menu():
     btn3.pack(side="left")
     btn4 = Radiobutton(fr, text="Black", font="Verdana 10", variable=playerColour, value="B")
     btn4.pack(side="right")
+    #button to auto-flip the board so the player whose turn it is sees it from a native perspective
     bFlip = Checkbutton(master, text="Auto-flip board", font="Verdana 14", variable=boardFlip)
     bFlip.pack(fill=X)
     btn5 = Button(master, text="How to play", font="Verdana 18", bd=0, \
@@ -1227,8 +1238,9 @@ def menu():
     def enable_disable():
         btn3.config(state=DISABLED if playAI.get() is False else NORMAL)
         btn4.config(state=DISABLED if playAI.get() is False else NORMAL)
-
+        scl.config(state=DISABLED if playAI.get() is False else NORMAL)
     btn2.config(command=enable_disable)
+
 def start(master, root): #starts the program by creating the GUI windows
     global game
     master.withdraw()
