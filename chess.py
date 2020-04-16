@@ -127,11 +127,13 @@ class Pieces:
                     #finding pawns that have made a double-step move in the preceding move
                     if v.colour == "W" and v.position[1] == "4" and v.moveCounter == 1 \
                        and self.position[1] == v.position[1] and \
+                    (v.position[0] == str(int(self.position[0])+1) or v.position[0] == str(int(self.position[0])-1)) and \
                        self.moves[-1] == str(self.rank_file[int(v.position[0])])+"4":
                         self.legal_moves.append(v.position[0]+str(int(v.position[1])-1))
                         self.enPassant = True
                     elif v.colour == "B" and v.position[1] == "5" and v.moveCounter == 1 \
                          and self.position[1] == v.position[1] and \
+                        (v.position[0] == str(int(self.position[0])+1) or v.position[0] == str(int(self.position[0])-1)) and \
                            self.moves[-1] == str(self.rank_file[int(v.position[0])])+"5":
                         self.legal_moves.append(v.position[0]+str(int(v.position[1])+1))
                         self.enPassant = True
@@ -573,16 +575,16 @@ class Pieces:
         self.board[self.position]["command"] = False
         #destination square is not empty
         if self.dct1[self.board[newPos].text] != "":
-            self.capturePiece(newPos) #captures the opponent piece at that square
+            self.captured_icons = self.capturePiece(newPos, self.captured_icons) #captures the opponent piece at that square
             capt = True #capturing
         #en-passant
         if type(self).__name__ is "Pawn" and self.enPassant is True: #capturing by en-passant - the only case where
             #a piece does not capture an opponent's piece on the destination square
             if self.colour == "B" and self.dct1[self.board[str(newPos[0])+str(int(newPos[1])+1)].text] == "wP":
-                self.capturePiece(str(newPos[0])+str(int(newPos[1])+1))
+                self.captured_icons = self.capturePiece(str(newPos[0])+str(int(newPos[1])+1), self.captured_icons)
                 capt = True
             if self.colour == "W" and self.dct1[self.board[str(newPos[0])+str(int(newPos[1])-1)].text] == "bP":
-                self.capturePiece(str(newPos[0])+str(int(newPos[1])-1))
+                self.captured_icons = self.capturePiece(str(newPos[0])+str(int(newPos[1])-1), self.captured_icons)
                 capt = True
 
         self.resetBoard() #resets the board
@@ -752,7 +754,8 @@ class Pieces:
         self.resetBoard()
         return False #piece is not under threat
 
-    def capturePiece(self, newPos): #captures an opponent's piece when the player's piece lands on the same square
+    def capturePiece(self, newPos, captured_icons): #captures an opponent's piece when the player's piece lands on the same square
+
         capt = False
         for piece in self.pieces[:]: #iterating over piece
             if piece.position == newPos: #a piece occupies the new square
@@ -760,10 +763,11 @@ class Pieces:
                 self.captured.append(piece) #capture opponent piece
                 self.pieces.remove(piece) #remove piece from list of active pieces
                 try:
+
                     if type(self).__name__ is not "Pawn" or \
                             (type(self).__name__ is "Pawn" and self.enPassant is False):
                         filename=self.board[newPos].text #piece name
-                        self.captured_icons.append(filename)
+                        captured_icons.append(filename)
                 except (AttributeError, IndexError):
                     pass
                 break
@@ -787,22 +791,33 @@ class Pieces:
                         self.board[newPos]["command"] = False
                         filename = self.dct2["bP"] #piece name
                         self.captured_icons.append(filename)
+
+
         if capt == True:
             #sorting captured pieces by value and colour
-            lst1 = [x for x in self.captured_icons if x in ["♕", "♖", "♗", "♘", "♙"]]
-            lst2 = [y for y in self.captured_icons if y in ["♛", "♜", "♝", "♞", "♟"]]
+            lst1 = [x for x in captured_icons if x in ["♕", "♖", "♗", "♘", "♙"]]
+            lst2 = [y for y in captured_icons if y in ["♛", "♜", "♝", "♞", "♟"]]
             lst3 = ["♕", "♖", "♗", "♘", "♙"]
             lst4 = ["♛", "♜", "♝", "♞", "♟"]
 
             lst1.sort(key=lambda x: lst3.index(x))
             lst2.sort(key=lambda y: lst4.index(y))
+
             self.captured_icons=lst1[::-1]+lst2
+
             #displaying all captured pieces, sorted by colour and value
             game.captured_widget.config(state=NORMAL)
             game.captured_widget.delete(1.0, END)
             for i in self.captured_icons:
                 game.captured_widget.insert(END, i+"\n")
+            #resizing icons to fit
+            numiconsToFontsize = {5: 32, 10: 32, 15: 30, 20: 28, 25: 18, 30: 12}
+            numberOfPieces = len(self.captured_icons)
+            fontsize = numiconsToFontsize[(math.ceil(numberOfPieces/5))*5]
+            game.captured_widget["font"] = ("Segoe UI Symbol", fontsize)
             game.captured_widget.config(state=DISABLED)
+
+
         #checking for draw by insufficient material
         for piece in self.pieces:
             if type(piece).__name__ is "Pawn" or type(piece).__name__ is "Queen" or \
@@ -828,6 +843,7 @@ class Pieces:
                     game.endGame("IM")
         except IndexError:
             pass
+        return captured_icons
 
     def placePiece(self, position): #places piece in required location on board
         self.position = position #current position set to new position
@@ -1010,11 +1026,11 @@ class Chess:
         self.captured_widget = Text(self.frame2, font=("Segoe UI Symbol", "32"), \
                                     relief="flat", bg="#f0f0ed", state=DISABLED)
         self.captured_widget.grid()
-        self.captured_widget.config(state=NORMAL)
-        self.captured_widget.config(state=DISABLED)
+        # self.captured_widget.config(state=DISABLED)
         for i in range(100):
             self.frame2.rowconfigure(i, weight=1)
             self.frame2.grid_rowconfigure(i, weight=1)
+
         #auto expand grid squares
         for i in range(1, 9):
             self.root.rowconfigure(i, weight=1)
