@@ -5,7 +5,7 @@
 
 #importing modules
 
-import math, winsound, webbrowser
+import math, winsound, webbrowser, random
 import gc #importing a module to find instances - i.e. find pieces by location
 import ai
 
@@ -123,7 +123,7 @@ class Pieces:
             #same sqaure as normal, rather it goes to the square the pawn would have moved to had it not double-stepped
             #i.e. behind the captured pawn on the same file
             if len(self.moves) > 1:
-                for v in [u for u in self.pieces if u.colour != self.colour and type(u).__name__ is "Pawn"]:
+                for v in [u for u in self.pieces if u.colour != self.colour and type(u).__name__ is "Pawn"]: #optimise change to generator
                     #finding pawns that have made a double-step move in the preceding move
                     if v.colour == "W" and v.position[1] == "4" and v.moveCounter == 1 \
                        and self.position[1] == v.position[1] and \
@@ -398,7 +398,7 @@ class Pieces:
                         #kingside
                         for f in ["61", "71"]:
                             try:
-                                for piece in [k for k in self.pieces if k.colour != self.colour]:
+                                for piece in [k for k in self.pieces if k.colour != self.colour]: #optimise change to generator
                                     if f in piece.legal_moves:
                                         raise StopIteration() #king cannot pass through check while castling
                                     if self.dct1[self.board[f].text] != "": #no pieces can be in between king and rook
@@ -408,8 +408,8 @@ class Pieces:
                         else:
                             try:
                                 rook = [h for h in self.pieces if h.colour == self.colour and type(h).__name__ is \
-                                        "Rook" and h.position == "81"][0] #finding a rook with which to castle
-                                for piece in [t for t in self.pieces if t.colour != self.colour]:
+                                        "Rook" and h.position == "81"][0] #finding a rook with which to castle # optimise change to generator
+                                for piece in [t for t in self.pieces if t.colour != self.colour]: #optimise change to generator
                                     #rook can't have moved and king can't be in check
                                     if rook.moveCounter == 0 and self not in piece.legal_moves:
                                         self.legal_moves.append("71")
@@ -419,7 +419,7 @@ class Pieces:
                         #queenside
                         for f in ["41", "31", "21"]:
                             try:
-                                for piece in [k for k in self.pieces if k.colour != self.colour]:
+                                for piece in [k for k in self.pieces if k.colour != self.colour]: #optimise change to generator
                                     if f in piece.legal_moves and f != "21":
                                         raise StopIteration() #king cannot pass through check while castling
                                     if self.dct1[self.board[f].text] != "": #no pieces can be in between king and rook
@@ -430,8 +430,8 @@ class Pieces:
                         else:
                             try:
                                 rook = [h for h in self.pieces if h.colour == self.colour and type(h).__name__ is \
-                                        "Rook" and h.position == "11"][0] #finding a rook with which to castle
-                                for piece in [t for t in self.pieces if t.colour != self.colour]:
+                                        "Rook" and h.position == "11"][0] #finding a rook with which to castle #optimise change to generator
+                                for piece in [t for t in self.pieces if t.colour != self.colour]: #optimise change to generator
                                     #rook can't have moved and king can't be in check
                                     if rook.moveCounter == 0 and self not in piece.legal_moves:
                                         self.legal_moves.append("31")
@@ -443,7 +443,7 @@ class Pieces:
                         #kingside
                         for f in ["68", "78"]:
                             try:
-                                for piece in [k for k in self.pieces if k.colour != self.colour]:
+                                for piece in [k for k in self.pieces if k.colour != self.colour]: #optimise change to generator
                                     if f in piece.legal_moves:
                                         raise StopIteration() #king cannot pass through check while castling
                                     if self.dct1[self.board[f].text] != "": #no pieces can be in between king and rook
@@ -454,8 +454,8 @@ class Pieces:
                         else:
                             try:
                                 rook = [h for h in self.pieces if h.colour == self.colour and type(h).__name__ is \
-                                        "Rook" and h.position == "88"][0] #finding a rook with which to castle
-                                for piece in [t for t in self.pieces if t.colour != self.colour]:
+                                        "Rook" and h.position == "88"][0] #finding a rook with which to castle #optimise change to generator
+                                for piece in [t for t in self.pieces if t.colour != self.colour]: #optimise change to generator
                                     #rook can't have moved and king can't be in check
                                     if rook.moveCounter == 0 and self not in piece.legal_moves:
                                         self.legal_moves.append("78")
@@ -465,7 +465,7 @@ class Pieces:
                         #queenside
                         for f in ["48", "38", "28"]:
                             try:
-                                for piece in [k for k in self.pieces if k.colour != self.colour]:
+                                for piece in [k for k in self.pieces if k.colour != self.colour]: #optimise change to generator
                                     if f in piece.legal_moves and f != "28":
                                         raise StopIteration() #king cannot pass through check while castling
                                     if self.dct1[self.board[f].text] != "": #no pieces can be in between king and rook
@@ -476,8 +476,8 @@ class Pieces:
                         else:
                             try:
                                 rook = [h for h in self.pieces if h.colour == self.colour and type(h).__name__ is \
-                                        "Rook" and h.position == "18"][0] #finding a rook with which to castle
-                                for piece in [t for t in self.pieces if t.colour != self.colour]:
+                                        "Rook" and h.position == "18"][0] #finding a rook with which to castle #optimise change to generator
+                                for piece in [t for t in self.pieces if t.colour != self.colour]: #optimise change to generator
                                     #rook can't have moved and king can't be in check
                                     if rook.moveCounter == 0 and self not in piece.legal_moves:
                                         self.legal_moves.append("38")
@@ -506,7 +506,7 @@ class Pieces:
                     checking = self.bKing.underThreat(True)
 
                 if type(self).__name__ is not "King":
-                    for p in [x for x in self.pieces if x.colour != self.colour]: #iterates over enemy pieces
+                    for p in (x for x in self.pieces if x.colour != self.colour): #iterates over enemy pieces
                         #piece is absolutely pinned; i.e.pinned to king
                         #so can't be moved without exposing the king to a check
                         try:
@@ -523,7 +523,7 @@ class Pieces:
                         illegal.append(y) #illegal move
 
             if type(self).__name__ is "King":
-                for p in [x for x in self.pieces if x.colour != self.colour]:
+                for p in (x for x in self.pieces if x.colour != self.colour):
                     if y in p.legal_moves: #king can only capture checking piece if it is unprotected
                         illegal.append(y) #illegal move
             #replacing pieces that were moved temporarily
@@ -538,7 +538,6 @@ class Pieces:
     def getTurn(self): #checks whose turn it is; white or black
         return game.turn[0] == self.colour
 
-
     def resetBoard(self): #resets the board to neutral position - no pieces selected
         for j in self.board:
             self.board[j]["command"] = "" #resetting button commands
@@ -552,7 +551,7 @@ class Pieces:
                 self.board[i]["bg"] = "ivory2"
 
     def showLegalMoves(self): #displays the legal moves of a piece when that piece is clicked
-        for piece in [x for x in self.pieces if x.colour == self.colour]: #iterates over all pieces of the colour of
+        for piece in [x for x in self.pieces if x.colour == self.colour]: #iterates over all pieces of the colour of #optimise change to generator
             #the player whose turn it is
             piece.legalMoves() #generating a list of all possible legal moves
             piece.illegalMoves() #and removing illegal moves
@@ -567,6 +566,7 @@ class Pieces:
                 self.board[c]["command"] = lambda c=c: self.move(c)
 
     def move(self, newPos): #moves current piece to the required position
+        oldPos = self.position
         capt = False #not capturing
         self.currentMove = ""
         #removes piece from current location
@@ -589,6 +589,7 @@ class Pieces:
 
         self.resetBoard() #resets the board
 
+        ##
         if type(self).__name__ is "King": #castling is a king move
             try:
                 if self.castling is True: #castling is permitted
@@ -669,7 +670,7 @@ class Pieces:
                     self.bKing.check(self) #boolean to test for check
                 else:
                     winner = game.turn[0] #game ends in checkmate - white has won
-                    self.board[self.bKing.position]["bg"] = "firebrick4" 
+                    self.board[self.bKing.position]["bg"] = "firebrick4"
             else:
                 if self.bKing.stalemate() is True: #test for stalemate
                     print("1/2-1/2", end="")
@@ -681,7 +682,7 @@ class Pieces:
                     self.wKing.check(self) #boolean to test for check
                 else:
                     winner = game.turn[0] #game ends in checkmate - black has won
-                    self.board[self.wKing.position]["bg"] = "firebrick4" 
+                    self.board[self.wKing.position]["bg"] = "firebrick4"
             else:
                 if self.wKing.stalemate() is True: #test for stalemate
                     print("1/2-1/2", end = "")
@@ -699,8 +700,8 @@ class Pieces:
         except IndexError: #game is less than 50 moves long
             pass
 
-       #mapping the move number to piece moved
-       #and outputting previous move
+        #mapping the move number to piece moved
+        #and outputting previous move
         if game.turn[0] == "W":
             sys.stdout.write("%i. %s " % ((len(self.moves)/2), self.moves[-1]))
             sys.stdout.flush()
@@ -721,18 +722,25 @@ class Pieces:
 
         winsound.PlaySound("chess_piece_sound", winsound.SND_FILENAME) #play sound of piece being placed
 
+
+        #highlight last move
+        self.board[oldPos]["bg"] = "light slate blue"
+        if self.board[newPos]["bg"] != "red":
+            self.board[newPos]["bg"] = "light slate blue"
+
         for obj in self.pieces: #iterating over all pieces
             for i in self.board:
                 if obj.position == i: #assigning each square that a piece can move to a command to move the piece
                     self.board[i]["command"] = obj.showLegalMoves #to that square
 
-        game.turn.reverse() #other player's turn
 
+        game.turn.reverse() #other player's turn
+        #checking if the computer can play
         if playAI.get() is True and playerColour.get()!=game.turn[0]:
-            ai.makeMove(levelAI.get(), Pieces.pieces, game.turn[0])
+            ai.makeMove(levelAI.get(), Pieces.pieces, game.turn[0], self.board)
+
         if game.turn[0] == "W": #so that the player looks at the board from their colour's perspective
             game.btn1.config(text="White to play", bg="linen", fg="black")
-
             if boardFlip.get() is True:  #flips the board every move (if enabled)
                 game.switchSides(False)
         else:
@@ -742,7 +750,7 @@ class Pieces:
 
     def underThreat(self, getCheckingPiece=False): #function to check if a piece is under threat
         #(i.e. being attacked) by an opponent piece
-        for piece in [x for x in self.pieces if x.colour != self.colour]: #iterates over the list of enemy pieces;
+        for piece in [x for x in self.pieces if x.colour != self.colour]: #iterates over the list of enemy pieces; #optimise change to generator
             #a piece can't be threatened by its own coloured pieces
             piece.legalMoves() #generates a list of legal moves for each piece
             if self.position in piece.legal_moves: #to check if the current piece's location is within those legal moves
@@ -847,6 +855,7 @@ class Pieces:
 
     def placePiece(self, position): #places piece in required location on board
         self.position = position #current position set to new position
+
         #checks which child class runs this method so the appropriate piece can be placed
         if type(self).__name__ is "Pawn": #placing a pawn
             if self.colour == "B":
@@ -890,6 +899,8 @@ class Pieces:
             elif self.colour == "W":
                 self.board[self.position]["text"] = self.WK
                 self.board[self.position].text = self.WK
+        #keeping track of what type of piece is at that position
+        self.board[self.position].occupier = type(self).__name__
 
 class King(Pieces): #king class - both kings are instances
 
@@ -905,7 +916,7 @@ class King(Pieces): #king class - both kings are instances
             return self.underThreat() #returns whether the king is under threat from an enemy piece
 
     def checkmate(self, activePiece): #evaluates whether the king has been checkmated
-        for piece in [x for x in self.pieces if x.colour == self.colour]: #iterates over friendly pieces
+        for piece in [x for x in self.pieces if x.colour == self.colour]: #iterates over friendly pieces #optimise change to generator
             piece.legalMoves()
             piece.illegalMoves()
             if len(piece.legal_moves) == 0: #piece has no legal moves
@@ -916,7 +927,7 @@ class King(Pieces): #king class - both kings are instances
         return True
 
     def stalemate(self): #evaluates whether the player has been stalemated
-        for piece in [x for x in self.pieces if x.colour == self.colour]: #iterates over friendly pieces
+        for piece in [x for x in self.pieces if x.colour == self.colour]: #iterates over friendly pieces #optimise change to generator
             piece.legalMoves()
             piece.illegalMoves()
             if len(piece.legal_moves) == 0: #piece has no legal moves
@@ -963,37 +974,41 @@ class Pawn(Pieces): #pawn class - all pawns are instances
         promoteChoice.attributes("-topmost", True)
         self.promoteVar = StringVar() #keeps track of promotion choice
         self.promoteVar.set(None)
-
-        for i in ["Queen", "Rook", "Bishop", "Knight"]:
-            r = Radiobutton(promoteChoice, text = i, variable = self.promoteVar, value = i)
-            r.pack(anchor = W)
-        promoteChoice.focus_force()
-
-        while True: #forces the user to pick a promotion or cancel move
-            #since promotion is not optional (a pawn cannot stay on the player's last rank)
-            if self.promoteVar.get() == "Queen": #promotion to queen
-                self.__class__ = Queen #changing the instance's (current pawn) class to queen; pawn becomes queen
-                self.currentMove += "Q" #move notation for promotion to queen (queening)
-                promoteChoice.destroy()
-                break
-            elif self.promoteVar.get() == "Knight": #promotion to knight
-                self.__class__ = Knight #changing the instance's (current pawn) class to knight; pawn becomes knight
-                self.currentMove += "N" #move notation for promotion to knight
-                promoteChoice.destroy()
-                break
-            elif self.promoteVar.get() == "Rook": #promotion to rook
-                self.__class__ = Rook #changing the instance's (current pawn) class to rook; pawn becomes rook
-                self.currentMove += "R" #move notation for promotion to rook
-                promoteChoice.destroy()
-                break
-            elif self.promoteVar.get() == "Bishop": #promotion to bishop
-                self.__class__ = Bishop #changing the instance's (current pawn) class to bishop; pawn becomes bishop
-                self.currentMove += "B" #move notation for promotion to bishop
-                promoteChoice.destroy()
-                break
-            else:
-                self.root.update()
-                continue
+        if playAI.get() is True and self.colour!=playerColour: #playing against the computer and its the computer's turn
+            self.promoteVar.set("Queen") #computer always promotes to queen
+            self.__class__ = Queen  #changing the instance's (current pawn) class to queen; pawn becomes queen
+            self.currentMove += "Q"  #move notation for promotion to queen (queening)
+            promoteChoice.destroy()
+        else:
+            for i in ["Queen", "Rook", "Bishop", "Knight"]:
+                r = Radiobutton(promoteChoice, text = i, variable = self.promoteVar, value = i)
+                r.pack(anchor = W)
+            promoteChoice.focus_force()
+            while True: #forces the user to pick a promotion or cancel move
+                #since promotion is not optional (a pawn cannot stay on the player's last rank)
+                if self.promoteVar.get() == "Queen": #promotion to queen
+                    self.__class__ = Queen #changing the instance's (current pawn) class to queen; pawn becomes queen
+                    self.currentMove += "Q" #move notation for promotion to queen (queening)
+                    promoteChoice.destroy()
+                    break
+                elif self.promoteVar.get() == "Knight": #promotion to knight
+                    self.__class__ = Knight #changing the instance's (current pawn) class to knight; pawn becomes knight
+                    self.currentMove += "N" #move notation for promotion to knight
+                    promoteChoice.destroy()
+                    break
+                elif self.promoteVar.get() == "Rook": #promotion to rook
+                    self.__class__ = Rook #changing the instance's (current pawn) class to rook; pawn becomes rook
+                    self.currentMove += "R" #move notation for promotion to rook
+                    promoteChoice.destroy()
+                    break
+                elif self.promoteVar.get() == "Bishop": #promotion to bishop
+                    self.__class__ = Bishop #changing the instance's (current pawn) class to bishop; pawn becomes bishop
+                    self.currentMove += "B" #move notation for promotion to bishop
+                    promoteChoice.destroy()
+                    break
+                else:
+                    self.root.update()
+                    continue
 
 
 #class for the game itself
@@ -1062,6 +1077,7 @@ class Chess:
                                 relief = "ridge", overrelief = "sunken")
             gridSq.grid(row=row, column=column, sticky=N+S+E+W) #positioning grid squares
             gridSq.text = "" #squares start off empty; pieces will be added later
+            gridSq.occupier = ""
             self.grid.append(gridSq) #adding the square locations to a list
         #bottom sidebar GUI widgets/elements: flip board button, turn indicator, export moves button, resign button
         self.btn1 = Label(self.frame3, text = "White to play", bg="linen", fg="black", font="Verdana 14")
@@ -1077,6 +1093,9 @@ class Chess:
         self.btn4 = Button(self.frame3, text="Resign", bd=0, font="Verdana 12", \
                            command=lambda: game.endGame("R", game.turn[1]))
         self.btn4.grid(row=2, column=4, sticky=E, pady=10)
+        #user can get a hint by pressing 'h' or 'H'
+        self.root.bind("h", lambda z: game.showHint())
+        self.root.bind("H", lambda z: game.showHint())
         #creating a mapped connection between coordinates and grid square
         self.boardMap = dict(zip(self.board, self.grid[::-1]))
 
@@ -1158,6 +1177,36 @@ class Chess:
     def displayLegalMoves(self, x): #returns the command to show the legal moves for the piece at that square
         return x.showLegalMoves
 
+    def showHint(self): #suggests a move to the player upon pressing 'h'
+        for k in Pieces.pieces:
+            self.boardMap[k.position]["command"] = k.showLegalMoves
+        for i in self.boardMap: #resetting board colour; every alternate square has a different colour
+            if (int(i[0]) + int(i[1])) % 2 == 0:
+               self.boardMap[i]["bg"] = "tan4"
+            else:
+                self.boardMap[i]["bg"] = "ivory2"
+        
+        possible_moves = { } #dictionary to hold possible moves, each piece is a key with its respective moves as items
+        for piece in [x for  x in Pieces.pieces if x.colour==self.turn[0]]: #iterating over all the player's pieces
+            piece.legalMoves()
+            possible_moves[piece] = [ ]
+            for p in piece.legal_moves: #iterating over that piece's legal moves
+                possible_moves[piece].append(p)
+        #selecting a random legal move
+        while True:
+            piece_move = random.sample(possible_moves.items(), 1) #selects a random piece and a random move for that piece
+            piece_move = list(map(list, piece_move))[0]
+            if len(piece_move[1]) == 0: #piece has no valid moves so can't be moved, another piece must be selected
+                continue
+            else: #piece has at least one valid move
+                piece_move[1] = random.choice(piece_move[1]) #if this piece has more than one
+                # legal move, selects a random move and discard the rest
+                break
+        pieceToMove, moveToMake = piece_move[0], piece_move[1] #piece to be moved and where it will move to
+        self.boardMap[pieceToMove.position]["bg"] = "yellow"
+        self.boardMap[moveToMake]["bg"] = "yellow"
+
+        
     def startGame(self):
         for obj in gc.get_objects(): #iterating over instances of objects
             for x in self.boardMap: #iterating over locations on the board
@@ -1167,7 +1216,7 @@ class Chess:
                         self.boardMap[x]["command"] = buttonCommand #clicking on the piece at position x will display
                         #the piece's legal moves
         if playAI.get() is True and playerColour.get() != game.turn[0]:
-            ai.makeMove(levelAI.get(), Pieces.pieces, game.turn[0])
+            ai.makeMove(levelAI.get(), Pieces.pieces, game.turn[0], self.boardMap)
 
 
     def endGame(self, case, winner=None):
@@ -1200,6 +1249,7 @@ class Chess:
             self.boardMap[sq].config(command=False)
         self.root.destroy()
         menu()
+        
 
 #setting up the GUI
 def menu():
@@ -1219,7 +1269,7 @@ def menu():
     boardFlip = BooleanVar(master, value=False)
     playAI = BooleanVar(master, value=True)
     playerColour = StringVar(master, value="W")
-    levelAI = IntVar(master, value=1)
+    levelAI = IntVar(master, value=2)
     #setting up the main menu with buttons and labels to start the game and select preferences
     lbl = Label(master, text="Chess", font=("MS Serif", "24", "bold"), bg="tan4", fg="ivory2")
     lbl.pack(fill=X)
@@ -1265,7 +1315,6 @@ def start(master, root): #starts the program by creating the GUI windows
     game.createPieces()
     game.startGame()
     root.deiconify()
-
 
 if __name__ == "__main__":
     menu() #creates the menu
