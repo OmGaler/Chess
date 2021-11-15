@@ -1,5 +1,6 @@
 import random
 
+#todo: in minimax, numerical value of a mate = +maths.inf, mated = -maths.inf
 
 ### active
 #todo don't move pieces intentionally into harms way - see if square to move to is in legal moves of enemy piece - won't work for pawn, king
@@ -205,9 +206,52 @@ def AIlvl2(pieces, turn, board): #ai powered with simple strategy
 
 #AI Lvl 3: The most complex of all algorithms - utilises minimax algorithm implemented with a game tree
 def AIlvl3(pieces, turn, board):
+    print(board)
+    tr = evaluate()
+    
+    
     def evaluate(): #evaluates state of the board
-        pass
+        for piece in pieces:
+            piece.getLegalMoves()
+            piece.getIllegalMoves()
+            for move in piece.legalMoves:
+                w, b = minimax(simulatePoisition(board, move))
+                whiteMaterial = None
+                blackMaterial = None
+        gameTree = Tree()
+        return gameTree
+    
     def minimax():
-        pass
+        return whiteScore, blackScore
+        
     #optimise: alpha-beta pruning
     raise ValueError("still in development :/")
+
+
+def simulatePosition(board, move_to_make):
+    return newBoard
+
+
+#minimax tree
+class Tree:
+    def __init__(self, head):
+        self.root = None
+        
+class Node:
+    
+    def __init__(self):
+        self.left = None
+        self.right = None
+        self.value = None
+
+    def setLeftChild(self, l):
+        self.left = l
+
+    def left(self):
+        return self.left
+
+    def setRightChild(self, r):
+        self.right = r
+        
+    def right(self):
+        return self.right
