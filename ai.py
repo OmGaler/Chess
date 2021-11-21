@@ -1,19 +1,19 @@
 import random
+import typing_extensions
 
 #todo: in minimax, numerical value of a mate = +maths.inf, mated = -maths.inf
 
-### active
 #todo don't move pieces intentionally into harms way - see if square to move to is in legal moves of enemy piece - won't work for pawn, king
 #fixme: current algorithm doesn't work for pawns as it assumes that the protecting piece would be able to move there if the square is empty
 #todo: tactics priority: 1. checkmate 2. promote (if feasible), 3. capture 4. make sure you're not blundering your piece away
 
 ### on hold
 #todo: see if a checkmate is available!! --on hold
-#fixme cant play against white AI
+#fixme: cant play against white AI
 #optimise: change iterating over lists to generators, its much more efficient and at this point it would be flipping idiotic not to do that
 #optimise: fix latency between human move showing and ai move showing -better there is a delay when ai moves (after human's piece has moved)
-#fixme insufficient material bug - both players must have insufficient material
-#fixme pawn next to king (NOT CHECKING) sometimes goes red, also king can;t move when a piece is pinned to it
+#fixme: insufficient material bug - both players must have insufficient material
+#fixme: pawn next to king (NOT CHECKING) sometimes goes red, also king can;t move when a piece is pinned to it
 
 
 # [x]  #lvl 1 - random move generation 
