@@ -1,5 +1,4 @@
 import random
-import typing_extensions
 
 #todo: in minimax, numerical value of a mate = +maths.inf, mated = -maths.inf
 
@@ -206,30 +205,64 @@ def AIlvl2(pieces, turn, board): #ai powered with simple strategy
 
 #AI Lvl 3: The most complex of all algorithms - utilises minimax algorithm implemented with a game tree
 def AIlvl3(pieces, turn, board):
-    print(board)
-    tr = evaluate()
+    node = minimax(Node(), 0, 2)
+    piece_move = node.move
+    pieceToMove = piece_move[0] #piece to be moved
+    moveToMake = piece_move[1] #where the piece will be moved to
+    pieceToMove.move(moveToMake) #makes the move
+
+
+def minimax(node, turn, depth): #turn=0-->"W", turn=1-->"B"
+    # if depth == 0:
+    #     wScore, bScore = evaluate(board, pieces, turn)
+    #     # todo: <<
+
+    # else:
+    #     tree = minimax(board,pieces,tree, turn.reverse(), depth-1)
+    # return tree
+    # # return whiteScore, blackScore
+    if depth == 0:
+        return node.value
+    #if child nodes exist, run minimax on each child nodes
+    l = minimax(node.left, not turn)
+    r = minimax(node.right, not turn)
+    # compare results
+    if (turn):
+        if (l.value > r.value):
+            return l.value
+        else:
+            return r.value
+    else:
+        if (l.value < r.value):
+            return l.value
+        else:
+            return r.value
+
+def evaluate(): #evaluates state of the board
+    for piece in pieces:
+        piece.getLegalMoves()
+        piece.getIllegalMoves()
+        for move in piece.legalMoves:
+            w, b = minimax(simulatePosition(board, move))
+            whiteMaterial = None
+
+            blackMaterial = None
+    gameTree = Tree()
+    return gameTree
     
-    
-    def evaluate(): #evaluates state of the board
-        for piece in pieces:
-            piece.getLegalMoves()
-            piece.getIllegalMoves()
-            for move in piece.legalMoves:
-                w, b = minimax(simulatePoisition(board, move))
-                whiteMaterial = None
-                blackMaterial = None
-        gameTree = Tree()
-        return gameTree
-    
-    def minimax():
-        return whiteScore, blackScore
-        
-    #optimise: alpha-beta pruning
-    raise ValueError("still in development :/")
+#optimise: alpha-beta pruning
+# raise ValueError("still in development :/")
 
 
 def simulatePosition(board, move_to_make):
-    return newBoard
+    newBoard = board
+    piece = move_to_make[0]
+    move = move_to_make[1] 
+    piece.move(move)
+
+
+
+
 
 
 #minimax tree
@@ -239,10 +272,11 @@ class Tree:
         
 class Node:
     
-    def __init__(self):
+    def __init__(self, val):
         self.left = None
         self.right = None
-        self.value = None
+        self.value = val  # integer score of move
+        self.move
 
     def setLeftChild(self, l):
         self.left = l

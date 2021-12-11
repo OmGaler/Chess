@@ -1,20 +1,26 @@
-##!/usr/bin/python
+##!/usr/bin/python 
+# #!what on earth does this ^ do??
 #Chess
 #Omer Galer
-#2018
+#2018-2021
 
 #importing modules
 
-import math, winsound, webbrowser, random
-import gc #importing a module to find instances - i.e. find pieces by location
+import math, webbrowser, random
+# import winsound
+#importing a module to find instances - i.e. find pieces by location
+import gc #optimise: omg this is an efficiency nightmare... 
 import ai
 
+#todo: deprecate python 2 support?
 try:
     from tkinter import * #import tkinter module for the GUI, python 3.x
     from tkinter import messagebox
 except ImportError:
-    from Tkinter import * #python 2.x
-    from Tkinter import messagebox
+    
+    pass
+    # from Tkinter import * #python 2.x
+    # from Tkinter import messagebox
 
 #Piece classes - each individual piece is an instance of this class
 class Pieces:
@@ -23,6 +29,15 @@ class Pieces:
     moves = [""]
     captured = [ ]
     pieces = [ ]
+    pieceHashTable = {}
+    # piecesWhiteHT = {}
+    # piecesBlackHT = {}
+    
+    #optimise:
+    #from collections import defaultdict
+    # pieces = defaultdict(list)
+    # pieces[regNumber] = details
+    # pieces[regNumber].append(details)
     captured_icons = [ ]
     #initialising instances
     def __init__(self, root, frame, grid, colour, board):
@@ -33,13 +48,23 @@ class Pieces:
         self.legal_moves = [ ]
         self.board = board
         self.moveCounter = 0
+
+        print(hash(self))
+        
         #variables for specific piece types
         if type(self).__name__ is "Pawn":
             self.enPassant = False
         elif type(self).__name__ is "King":
             self.castling = False
 
+
+        if self.colour == "W": #optimise: can't have a hashmap with nonunique keys -- 
+            #optimise:                     what do you do when you have 2 bishops or 8 pawns
+            self.__class__.piecesWhiteHT[str(type(self).__name__)] = self
+        else:
+            self.__class__.piecesBlackHT[str(type(self).__name__)] = self
         self.__class__.pieces.append(self) #keeping track of all the pieces in a list
+        #! todo: why .__class__??
         self.alph = ["a", "b", "c", "d", "e", "f", "g", "h"]
         #creating a map from numeric to alpha notation and vice versa
         self.file_rank = {a: b+1 for a, b in zip(self.alph, range(8))}
@@ -69,9 +94,15 @@ class Pieces:
 
     def legalMoves(self): #generates a list of legal moves for the piece which it is called by
         #making a local variable for keeping track of both kings
+
         self.wKing = [x for x in self.pieces if type(x).__name__ == "King" and x.colour == "W"][0]
         self.bKing = [x for x in self.pieces if type(x).__name__ == "King" and x.colour == "B"][0]
 
+        #optimise: find kings by hashtable instead of iterating over list
+        self.bKing = self.piecesBlackHT.get("King")
+        self.wKing = self.piecesWhiteHT.get("King")
+
+        #optimise: end
         self.legal_moves = [ ] #initialising an empty list to hold all legal moves for this piece
         file = int(self.position[0]) #current position of piece; file is the column (a-h)
         rank = int(self.position[1]) #and rank is the row (1-8)
