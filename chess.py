@@ -1,23 +1,20 @@
 ##!/usr/bin/python 
 # #!what on earth does this ^ do??
 #Chess
-#Omer Galer
-#2018-2021
+#A project by Omer Galer
+#2018-2022
 
 #importing modules
-
 import math, webbrowser, random
-# import winsound
+#import winsound
 #importing a module to find instances - i.e. find pieces by location
 import gc #optimise: omg this is an efficiency nightmare... 
 import ai
 
-#todo: deprecate python 2 support?
-try:
+try: #todo: deprecate python 2 support?
     from tkinter import * #import tkinter module for the GUI, python 3.x
     from tkinter import messagebox
 except ImportError:
-    
     pass
     # from Tkinter import * #python 2.x
     # from Tkinter import messagebox

@@ -255,6 +255,18 @@ def evaluate(): #evaluates state of the board
 
 
 def simulatePosition(board, move_to_make):
+    '''
+    simulated = Chess()
+    simulated.createBoard()
+    simulated.createPieces()
+    simulated.startGame()?
+    del simulated #because
+    for p in simulated.pieces:
+        if p == move_to_make[0]:
+            mv = move_to_make[1]
+            p.mv
+    evaluate(simulated)
+    '''
     newBoard = board
     piece = move_to_make[0]
     move = move_to_make[1] 

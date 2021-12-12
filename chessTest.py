@@ -1,0 +1,2 @@
+#testGame = Game()
+#checkmate
