@@ -5,21 +5,19 @@
 #2018-2022
 
 #importing modules
-import math, webbrowser, random
-#import winsound
+import math, webbrowser, random, sys #import winsound
+
+from tkinter import * #import tkinter module for the GUI, python 3.x
+from tkinter import messagebox
+
 #importing a module to find instances - i.e. find pieces by location
-import gc #optimise: omg this is an efficiency nightmare... 
+import gc #optimise: omg this == an efficiency nightmare... 
+
 import ai
+# import server, client #multiplayer over network
 
-try: #todo: deprecate python 2 support?
-    from tkinter import * #import tkinter module for the GUI, python 3.x
-    from tkinter import messagebox
-except ImportError:
-    pass
-    # from Tkinter import * #python 2.x
-    # from Tkinter import messagebox
 
-#Piece classes - each individual piece is an instance of this class
+#Piece classes - each individual piece == an instance of this class
 class Pieces:
 
     #class attributes - not specific to each piece
@@ -27,8 +25,9 @@ class Pieces:
     captured = [ ]
     pieces = [ ]
     pieceHashTable = {}
-    # piecesWhiteHT = {}
-    # piecesBlackHT = {}
+    #optimise:
+    piecesWhiteHT = {}
+    piecesBlackHT = {}
     
     #optimise:
     #from collections import defaultdict
@@ -49,9 +48,9 @@ class Pieces:
         print(hash(self))
         
         #variables for specific piece types
-        if type(self).__name__ is "Pawn":
+        if type(self).__name__ == "Pawn":
             self.enPassant = False
-        elif type(self).__name__ is "King":
+        elif type(self).__name__ == "King":
             self.castling = False
 
 
@@ -89,7 +88,7 @@ class Pieces:
             Pieces.dct2 = dict(zip(Pieces.text, Pieces.texts))
 
 
-    def legalMoves(self): #generates a list of legal moves for the piece which it is called by
+    def legalMoves(self): #generates a list of legal moves for the piece which it == called by
         #making a local variable for keeping track of both kings
 
         self.wKing = [x for x in self.pieces if type(x).__name__ == "King" and x.colour == "W"][0]
@@ -101,24 +100,24 @@ class Pieces:
 
         #optimise: end
         self.legal_moves = [ ] #initialising an empty list to hold all legal moves for this piece
-        file = int(self.position[0]) #current position of piece; file is the column (a-h)
-        rank = int(self.position[1]) #and rank is the row (1-8)
+        file = int(self.position[0]) #current position of piece; file == the column (a-h)
+        rank = int(self.position[1]) #and rank == the row (1-8)
 
-        if type(self).__name__ is "Pawn": #legal moves for a pawn
+        if type(self).__name__ == "Pawn": #legal moves for a pawn
             #pawn's legal moves (excluding captures) consists of one square forward at a time, optional two squares only
             #starting position; captures are made diagonally forwards only
             #if a pawn reaches the last rank (1st for black, 8th for white) it promotes to a piece (Knight/Bishop/Rook/
             #Queen) of the player's choosing
             if (self.colour == "W" and rank == 8) or (self.colour == "B" and rank == 1): #
-                return #pawn has reached end of board and is eligible for promotion
+                return #pawn has reached end of board and == eligible for promotion
 
             if self.colour == "W": #white pawns move up ranks
                 if rank == 2 and self.dct1[self.board[str(file) + str(rank+1)].text] == "":
                     if self.dct1[self.board[str(file) + str(rank+2)].text] == "":
                         self.legal_moves.append(str(file) + str(rank+2))#pawn can move two squares from its starting pos
-                    self.legal_moves.append(str(file) + str(rank+1)) #pawn's move is one step forward
+                    self.legal_moves.append(str(file) + str(rank+1)) #pawn's move == one step forward
                 elif rank != 2 and self.dct1[self.board[str(file) + str(rank+1)].text] == "":
-                    self.legal_moves.append(str(file) + str(rank+1)) #pawn's move is one step forward
+                    self.legal_moves.append(str(file) + str(rank+1)) #pawn's move == one step forward
                 #captures
                 try: #pawns capture enemy piece diagonally forward
                     if "b" in self.dct1[self.board[str(file+1) + str(rank+1)].text]:
@@ -132,9 +131,9 @@ class Pieces:
                 if rank == 7 and self.dct1[self.board[str(file) + str(rank-1)].text] == "":
                     if self.dct1[self.board[str(file) + str(rank-2)].text] == "":
                         self.legal_moves.append(str(file) + str(rank-2))#pawn can move two squares from its starting pos
-                    self.legal_moves.append(str(file) + str(rank-1)) #pawn's move is one step forward
+                    self.legal_moves.append(str(file) + str(rank-1)) #pawn's move == one step forward
                 elif rank != 7 and self.dct1[self.board[str(file) + str(rank-1)].text] == "":
-                    self.legal_moves.append(str(file) + str(rank-1)) #pawn's move is one step forward
+                    self.legal_moves.append(str(file) + str(rank-1)) #pawn's move == one step forward
                 #captures
                 try: #pawns capture enemy piece diagonally forward
                     if "w" in self.dct1[self.board[str(file+1) + str(rank-1)].text]:
@@ -145,13 +144,13 @@ class Pieces:
                         self.legal_moves.append(str(file-1) + str(rank-1))
                 except: pass
 
-            #enabling en-passant - if a pawn makes a double-step move from its starting position and an enemy pawn is
-            #in a position such that had the pawn not double-stepped it could have been captured, the enemy pawn is able
-            #to capture the pawn "en-passant" in passing - the pawn is captured but the enemy pawn does not occupy the
+            #enabling en-passant - if a pawn makes a double-step move from its starting position and an enemy pawn ==
+            #in a position such that had the pawn not double-stepped it could have been captured, the enemy pawn == able
+            #to capture the pawn "en-passant" in passing - the pawn == captured but the enemy pawn does not occupy the
             #same sqaure as normal, rather it goes to the square the pawn would have moved to had it not double-stepped
             #i.e. behind the captured pawn on the same file
             if len(self.moves) > 1:
-                for v in [u for u in self.pieces if u.colour != self.colour and type(u).__name__ is "Pawn"]: #optimise change to generator
+                for v in [u for u in self.pieces if u.colour != self.colour and type(u).__name__ == "Pawn"]: #optimise change to generator
                     #finding pawns that have made a double-step move in the preceding move
                     if v.colour == "W" and v.position[1] == "4" and v.moveCounter == 1 \
                        and self.position[1] == v.position[1] and \
@@ -166,7 +165,7 @@ class Pieces:
                         self.legal_moves.append(v.position[0]+str(int(v.position[1])+1))
                         self.enPassant = True
 
-        elif type(self).__name__ is "Knight": #legal moves for a knight
+        elif type(self).__name__ == "Knight": #legal moves for a knight
             #knight's legal moves consist of two squares in one direction and one square in a perpendicular direction
             # (L-shape). The knight, unlike other pieces, can jump over other pieces
             if file + 1 < 9 and rank + 2 < 9: #8 possibilities of l-shaped moves
@@ -193,205 +192,205 @@ class Pieces:
             for m in illegal:
                 self.legal_moves.remove(m)
 
-        elif type(self).__name__ is "Rook": #legal moves for a rook
+        elif type(self).__name__ == "Rook": #legal moves for a rook
             #rook's legal moves consist of unlimited horizontal and vertical movement along each rank or file until a
-            #piece is encountered, if the piece is an opponent that piece may be captured and the rook may move no
-            #further, if the piece is friendly that position may not be taken and the rook may move no further
-            counter = [False] * 4 #counters to keep track of direction that is being iterated over
+            #piece == encountered, if the piece == an opponent that piece may be captured and the rook may move no
+            #further, if the piece == friendly that position may not be taken and the rook may move no further
+            counter = [False] * 4 #counters to keep track of direction that == being iterated over
             for i in range(1, 9): #max 8 ranks, 8 files
-                if file+i < 9 and counter[0] is False: #file is on board
+                if file+i < 9 and counter[0] == False: #file == on board
                     x = str(file+i) + str(rank)
                     if self.colour.lower() not in self.dct1[self.board[x].text]:
                         if self.dct1[self.board[x].text] != "":
-                            self.legal_moves.append(x) #move is valid
+                            self.legal_moves.append(x) #move == valid
                             counter[0]=True #move to next direction; rook can move no further
                         else:
-                            self.legal_moves.append(x) #move is valid
+                            self.legal_moves.append(x) #move == valid
                     else:
                         counter[0]=True #move to next direction; rook can move no further
 
-                if rank+i < 9 and counter[1] is False: #rank is on board
+                if rank+i < 9 and counter[1] == False: #rank == on board
                     x = str(file) + str(rank+i)
                     if self.colour.lower() not in self.dct1[self.board[x].text]:
                         if self.dct1[self.board[x].text] != "":
-                            self.legal_moves.append(x) #move is valid
+                            self.legal_moves.append(x) #move == valid
                             counter[1]=True #move to next direction; rook can move no further
                         else:
-                            self.legal_moves.append(x) #move is valid
+                            self.legal_moves.append(x) #move == valid
                     else:
                         counter[1]=True #move to next direction; rook can move no further
 
-                if file-i > 0 and counter[2] is False: #file is on board
+                if file-i > 0 and counter[2] == False: #file == on board
                     x = str(file-i) + str(rank)
                     if self.colour.lower() not in self.dct1[self.board[x].text]:
                         if self.dct1[self.board[x].text] != "":
-                            self.legal_moves.append(x) #move is valid
+                            self.legal_moves.append(x) #move == valid
                             counter[2]=True #move to next direction; rook can move no further
                         else:
-                            self.legal_moves.append(x) #move is valid
+                            self.legal_moves.append(x) #move == valid
                     else:
                         counter[2]=True #move to next direction; rook can move no further
 
-                if rank-i > 0 and counter[3] is False: #rank is on board
+                if rank-i > 0 and counter[3] == False: #rank == on board
                     x = str(file) + str(rank-i)
                     if self.colour.lower() not in self.dct1[self.board[x].text]:
                         if self.dct1[self.board[x].text] != "":
-                            self.legal_moves.append(x) #move is valid
+                            self.legal_moves.append(x) #move == valid
                             counter[3]=True #move to next direction; rook can move no further
                         else:
-                            self.legal_moves.append(x) #move is valid
+                            self.legal_moves.append(x) #move == valid
                     else:
                         counter[3]=True #move to next direction; rook can move no further
 
-        elif type(self).__name__ is "Bishop": #legal moves for a bishop
+        elif type(self).__name__ == "Bishop": #legal moves for a bishop
         #bishop's legal moves consist of unlimited diagonal movement along diagonals of the same colour
-        #until a piece is encountered, if the piece is an opponent that piece may be captured and the bishop may move
-        #no further, if the piece is friendly that position may not be taken and the bishop may move no further
-            counter = [False] * 4 #counters to keep track of direction that is being iterated over
+        #until a piece == encountered, if the piece == an opponent that piece may be captured and the bishop may move
+        #no further, if the piece == friendly that position may not be taken and the bishop may move no further
+            counter = [False] * 4 #counters to keep track of direction that == being iterated over
             for j in range(1,9): #max 8 squares on each diagonal
-                if file+j < 9 and rank+j < 9 and counter[0] is False: #file and rank are on board
+                if file+j < 9 and rank+j < 9 and counter[0] == False: #file and rank are on board
                     x = str(file+j) + str(rank+j)
                     if self.colour.lower() not in self.dct1[self.board[x].text]:
                         if self.dct1[self.board[x].text] != "":
-                            self.legal_moves.append(x) #move is valid
+                            self.legal_moves.append(x) #move == valid
                             counter[0]=True #move to next direction; bishop can move no further
                         else:
-                            self.legal_moves.append(x) #move is valid
+                            self.legal_moves.append(x) #move == valid
                     else:
                         counter[0]=True #move to next direction; bishop can move no further
 
-                if file-j > 0 and rank-j > 0 and counter[1] is False: #file and rank are on board
+                if file-j > 0 and rank-j > 0 and counter[1] == False: #file and rank are on board
                     x = str(file-j) + str(rank-j)
                     if self.colour.lower() not in self.dct1[self.board[x].text]:
                         if self.dct1[self.board[x].text] != "":
-                            self.legal_moves.append(x) #move is valid
+                            self.legal_moves.append(x) #move == valid
                             counter[1]=True #move to next direction; bishop can move no further
                         else:
-                            self.legal_moves.append(x) #move is valid
+                            self.legal_moves.append(x) #move == valid
                     else:
                         counter[1]=True #move to next direction; bishop can move no further
 
-                if file+j < 9 and rank-j > 0 and counter[2] is False: #file and rank are on board
+                if file+j < 9 and rank-j > 0 and counter[2] == False: #file and rank are on board
                     x = str(file+j) + str(rank-j)
                     if self.colour.lower() not in self.dct1[self.board[x].text]:
                         if self.dct1[self.board[x].text] != "":
-                            self.legal_moves.append(x) #move is valid
+                            self.legal_moves.append(x) #move == valid
                             counter[2]=True #move to next direction; bishop can move no further
                         else:
-                            self.legal_moves.append(x) #move is valid
+                            self.legal_moves.append(x) #move == valid
                     else:
                         counter[2]=True #move to next direction; bishop can move no further
 
-                if file-j > 0 and rank+j < 9 and counter[3] is False: #file and rank are on board
+                if file-j > 0 and rank+j < 9 and counter[3] == False: #file and rank are on board
                     x = str(file-j) + str(rank+j)
                     if self.colour.lower() not in self.dct1[self.board[x].text]:
                         if self.dct1[self.board[x].text] != "":
-                            self.legal_moves.append(x) #move is valid
+                            self.legal_moves.append(x) #move == valid
                             counter[3]=True #move to next direction; bishop can move no further
                         else:
-                            self.legal_moves.append(x) #move is valid
+                            self.legal_moves.append(x) #move == valid
                     else:
                         counter[3]=True #move to next direction; bishop can move no further
 
 
-        elif type(self).__name__ is "Queen":
+        elif type(self).__name__ == "Queen":
             #queen's legal moves consist of unlimited horizontal, vertical and diagonal
             #movement, i.e. combining the moves of the rook and the bishop
-            counter = [False] * 4 #counters to keep track of direction that is being iterated over
+            counter = [False] * 4 #counters to keep track of direction that == being iterated over
             for i in range(1, 9): #max 8 ranks, 8 files
-                if file+i < 9 and counter[0] is False: #file is on board
+                if file+i < 9 and counter[0] == False: #file == on board
                     x = str(file+i) + str(rank)
                     if self.colour.lower() not in self.dct1[self.board[x].text]:
                         if self.dct1[self.board[x].text] != "":
-                            self.legal_moves.append(x) #move is valid
+                            self.legal_moves.append(x) #move == valid
                             counter[0]=True #move to next direction; queen can move no further
                         else:
-                            self.legal_moves.append(x) #move is valid
+                            self.legal_moves.append(x) #move == valid
                     else:
                         counter[0]=True #move to next direction; queen can move no further
 
-                if rank+i < 9 and counter[1] is False: #rank is on board
+                if rank+i < 9 and counter[1] == False: #rank == on board
                     x = str(file) + str(rank+i)
                     #try:
                     if self.colour.lower() not in self.dct1[self.board[x].text]:
                         if self.dct1[self.board[x].text] != "":
-                            self.legal_moves.append(x) #move is valid
+                            self.legal_moves.append(x) #move == valid
                             counter[1]=True #move to next direction; queen can move no further
                         else:
-                            self.legal_moves.append(x) #move is valid
+                            self.legal_moves.append(x) #move == valid
                     else:
                         counter[1]=True #move to next direction; queen can move no further
 
-                if file-i > 0 and counter[2] is False: #file is on board
+                if file-i > 0 and counter[2] == False: #file == on board
                     x = str(file-i) + str(rank)
                     #try:
                     if self.colour.lower() not in self.dct1[self.board[x].text]:
                         if self.dct1[self.board[x].text] != "":
-                            self.legal_moves.append(x) #move is valid
+                            self.legal_moves.append(x) #move == valid
                             counter[2]=True #move to next direction; queen can move no further
                         else:
-                            self.legal_moves.append(x) #move is valid
+                            self.legal_moves.append(x) #move == valid
                     else:
                         counter[2]=True #move to next direction; queen can move no further
 
-                if rank-i > 0 and counter[3] is False: #rank is on board
+                if rank-i > 0 and counter[3] == False: #rank == on board
                     x = str(file) + str(rank-i)
                     if self.colour.lower() not in self.dct1[self.board[x].text]:
                         if self.dct1[self.board[x].text] != "":
-                            self.legal_moves.append(x) #move is valid
+                            self.legal_moves.append(x) #move == valid
                             counter[3]=True #move to next direction; queen can move no further
                         else:
-                            self.legal_moves.append(x) #move is valid
+                            self.legal_moves.append(x) #move == valid
                     else:
                         counter[3]=True #move to next direction; queen can move no further
 
-            counter = [False] * 4 #counters to keep track of direction that is being iterated over
+            counter = [False] * 4 #counters to keep track of direction that == being iterated over
             for j in range(1,9):
-                if file+j < 9 and rank+j < 9 and counter[0] is False: #file and rank are on board
+                if file+j < 9 and rank+j < 9 and counter[0] == False: #file and rank are on board
                     x = str(file+j) + str(rank+j)
                     if self.colour.lower() not in self.dct1[self.board[x].text]:
                         if self.dct1[self.board[x].text] != "":
-                            self.legal_moves.append(x) #move is valid
+                            self.legal_moves.append(x) #move == valid
                             counter[0]=True #move to next direction; queen can move no further
                         else:
-                            self.legal_moves.append(x) #move is valid
+                            self.legal_moves.append(x) #move == valid
                     else:
                         counter[0]=True #move to next direction; queen can move no further
 
-                if file-j > 0 and rank-j > 0 and counter[1] is False: #file and rank are on board
+                if file-j > 0 and rank-j > 0 and counter[1] == False: #file and rank are on board
                     x = str(file-j) + str(rank-j)
                     if self.colour.lower() not in self.dct1[self.board[x].text]:
                         if self.dct1[self.board[x].text] != "":
-                            self.legal_moves.append(x) #move is valid
+                            self.legal_moves.append(x) #move == valid
                             counter[1]=True #move to next direction; queen can move no further
                         else:
-                            self.legal_moves.append(x) #move is valid
+                            self.legal_moves.append(x) #move == valid
                     else:
                         counter[1]=True #move to next direction; queen can move no further
 
-                if file+j < 9 and rank-j > 0 and counter[2] is False: #file and rank are on board
+                if file+j < 9 and rank-j > 0 and counter[2] == False: #file and rank are on board
                     x = str(file+j) + str(rank-j)
                     if self.colour.lower() not in self.dct1[self.board[x].text]:
                         if self.dct1[self.board[x].text] != "":
-                            self.legal_moves.append(x) #move is valid
+                            self.legal_moves.append(x) #move == valid
                             counter[2]=True #move to next direction; queen can move no further
                         else:
-                            self.legal_moves.append(x) #move is valid
+                            self.legal_moves.append(x) #move == valid
                     else:
                         counter[2]=True #move to next direction; queen can move no further
 
-                if file-j > 0 and rank+j < 9 and counter[3] is False: #file and rank are on board
+                if file-j > 0 and rank+j < 9 and counter[3] == False: #file and rank are on board
                     x = str(file-j) + str(rank+j)
                     if self.colour.lower() not in self.dct1[self.board[x].text]:
                         if self.dct1[self.board[x].text] != "":
-                            self.legal_moves.append(x) #move is valid
+                            self.legal_moves.append(x) #move == valid
                             counter[3]=True #move to next direction; queen can move no further
                         else:
-                            self.legal_moves.append(x) #move is valid
+                            self.legal_moves.append(x) #move == valid
                     else:
                         counter[3]=True #move to next direction; queen can move no further
 
-        elif type(self).__name__ is "King":
+        elif type(self).__name__ == "King":
             #king's legal moves consist of movement of one square in any direction
             #however the king cannot be moved into the path of an opponent piece such that it could be captured on the
             #next move; similarly, any other piece cannot be moved if it opens the king up to direct attack
@@ -420,7 +419,7 @@ class Pieces:
                 self.legal_moves.remove(m)
 
             #castling
-            if "+" not in self.moves[-1]: #king isn't in check; castling is permitted
+            if "+" not in self.moves[-1]: #king isn't in check; castling == permitted
                 if self.moveCounter == 0: #king cannot have moved to castle
                     if self.colour == "W": #castling takes place on 1st rank (white castles)
                         #kingside
@@ -430,12 +429,12 @@ class Pieces:
                                     if f in piece.legal_moves:
                                         raise StopIteration() #king cannot pass through check while castling
                                     if self.dct1[self.board[f].text] != "": #no pieces can be in between king and rook
-                                        raise StopIteration() #StopIteration exception is used here to break out of a
+                                        raise StopIteration() #StopIteration exception == used here to break out of a
                             except StopIteration:                                          #double (nested) for-loop
                                 break
                         else:
                             try:
-                                rook = [h for h in self.pieces if h.colour == self.colour and type(h).__name__ is \
+                                rook = [h for h in self.pieces if h.colour == self.colour and type(h).__name__ == \
                                         "Rook" and h.position == "81"][0] #finding a rook with which to castle # optimise change to generator
                                 for piece in [t for t in self.pieces if t.colour != self.colour]: #optimise change to generator
                                     #rook can't have moved and king can't be in check
@@ -451,13 +450,13 @@ class Pieces:
                                     if f in piece.legal_moves and f != "21":
                                         raise StopIteration() #king cannot pass through check while castling
                                     if self.dct1[self.board[f].text] != "": #no pieces can be in between king and rook
-                                        raise StopIteration() #StopIteration exception is used here to break out of a
+                                        raise StopIteration() #StopIteration exception == used here to break out of a
                             except StopIteration:                                          #double (nested) for-loop
                                 break
 
                         else:
                             try:
-                                rook = [h for h in self.pieces if h.colour == self.colour and type(h).__name__ is \
+                                rook = [h for h in self.pieces if h.colour == self.colour and type(h).__name__ == \
                                         "Rook" and h.position == "11"][0] #finding a rook with which to castle #optimise change to generator
                                 for piece in [t for t in self.pieces if t.colour != self.colour]: #optimise change to generator
                                     #rook can't have moved and king can't be in check
@@ -475,13 +474,13 @@ class Pieces:
                                     if f in piece.legal_moves:
                                         raise StopIteration() #king cannot pass through check while castling
                                     if self.dct1[self.board[f].text] != "": #no pieces can be in between king and rook
-                                        raise StopIteration() #StopIteration exception is used here to break out of a
+                                        raise StopIteration() #StopIteration exception == used here to break out of a
                             except StopIteration:                                          #double (nested) for-loop
                                 break
 
                         else:
                             try:
-                                rook = [h for h in self.pieces if h.colour == self.colour and type(h).__name__ is \
+                                rook = [h for h in self.pieces if h.colour == self.colour and type(h).__name__ == \
                                         "Rook" and h.position == "88"][0] #finding a rook with which to castle #optimise change to generator
                                 for piece in [t for t in self.pieces if t.colour != self.colour]: #optimise change to generator
                                     #rook can't have moved and king can't be in check
@@ -497,13 +496,13 @@ class Pieces:
                                     if f in piece.legal_moves and f != "28":
                                         raise StopIteration() #king cannot pass through check while castling
                                     if self.dct1[self.board[f].text] != "": #no pieces can be in between king and rook
-                                        raise StopIteration() #StopIteration exception is used here to break out of a
+                                        raise StopIteration() #StopIteration exception == used here to break out of a
                             except StopIteration:                                          #double (nested) for-loop
                                 break
 
                         else:
                             try:
-                                rook = [h for h in self.pieces if h.colour == self.colour and type(h).__name__ is \
+                                rook = [h for h in self.pieces if h.colour == self.colour and type(h).__name__ == \
                                         "Rook" and h.position == "18"][0] #finding a rook with which to castle #optimise change to generator
                                 for piece in [t for t in self.pieces if t.colour != self.colour]: #optimise change to generator
                                     #rook can't have moved and king can't be in check
@@ -514,7 +513,7 @@ class Pieces:
                                 pass
 
 
-    def illegalMoves(self): #checking to see if the king is in check and
+    def illegalMoves(self): #checking to see if the king == in check and
         #delegalising moves that put/keep the king under threat
         illegal = [ ] #illegal moves
         for y in self.legal_moves: #iterating over piece's legal moves
@@ -526,22 +525,22 @@ class Pieces:
             self.board[y]["text"] = tempOrigin  #placing the piece at the new position
             self.board[y].text = tempOrigin
 
-            if (self.colour == "W" and self.wKing.check() is True) or \
-               (self.colour == "B" and self.bKing.check() is True): #checks if the player's king is in check
-                if self.colour == "W": #keeps track of checking piece; piece that is threatening king
+            if (self.colour == "W" and self.wKing.check() == True) or \
+               (self.colour == "B" and self.bKing.check() == True): #checks if the player's king == in check
+                if self.colour == "W": #keeps track of checking piece; piece that == threatening king
                     checking = self.wKing.underThreat(True)
-                else: #keeps track of checking piece; piece that is threatening king
+                else: #keeps track of checking piece; piece that == threatening king
                     checking = self.bKing.underThreat(True)
 
-                if type(self).__name__ is not "King":
+                if type(self).__name__ != "King":
                     for p in (x for x in self.pieces if x.colour != self.colour): #iterates over enemy pieces
-                        #piece is absolutely pinned; i.e.pinned to king
+                        #piece == absolutely pinned; i.e.pinned to king
                         #so can't be moved without exposing the king to a check
                         try:
                             if y == checking.position: #checking piece can be captured
                                 if self.position in p.legal_moves:
                                     illegal.append(y) #illegal move
-                                raise StopIteration() #StopIteration exception is used here to
+                                raise StopIteration() #StopIteration exception == used here to
                                 #break out of a double (nested) for-loop
                         except StopIteration:
                             break
@@ -550,9 +549,9 @@ class Pieces:
                         self.board[self.position].text = tempDest
                         illegal.append(y) #illegal move
 
-            if type(self).__name__ is "King":
+            if type(self).__name__ == "King":
                 for p in (x for x in self.pieces if x.colour != self.colour):
-                    if y in p.legal_moves: #king can only capture checking piece if it is unprotected
+                    if y in p.legal_moves: #king can only capture checking piece if it == unprotected
                         illegal.append(y) #illegal move
             #replacing pieces that were moved temporarily
             self.board[y]["text"] = tempDest
@@ -563,7 +562,7 @@ class Pieces:
         for k in set(illegal): #removing illegal moves from the list of legal moves
             self.legal_moves.remove(k)
 
-    def getTurn(self): #checks whose turn it is; white or black
+    def getTurn(self): #checks whose turn it ==; white or black
         return game.turn[0] == self.colour
 
     def resetBoard(self): #resets the board to neutral position - no pieces selected
@@ -578,16 +577,16 @@ class Pieces:
             else:
                 self.board[i]["bg"] = "ivory2"
 
-    def showLegalMoves(self): #displays the legal moves of a piece when that piece is clicked
+    def showLegalMoves(self): #displays the legal moves of a piece when that piece == clicked
         for piece in [x for x in self.pieces if x.colour == self.colour]: #iterates over all pieces of the colour of #optimise change to generator
-            #the player whose turn it is
+            #the player whose turn it ==
             piece.legalMoves() #generating a list of all possible legal moves
             piece.illegalMoves() #and removing illegal moves
 
         if any(self.board[a]["bg"] == "blue" for a in self.board):
-            self.resetBoard() #resets board colour if a piece is selected and deselects that piece
+            self.resetBoard() #resets board colour if a piece == selected and deselects that piece
 
-        if self.getTurn() is True: #current player's turn
+        if self.getTurn() == True: #current player's turn
             for c in self.legal_moves: #displays legal moves
                 self.board[c]["bg"] = "blue" #by highlighting them blue
                 #each legal move button has a command to move the piece to that square
@@ -606,7 +605,7 @@ class Pieces:
             self.captured_icons = self.capturePiece(newPos, self.captured_icons) #captures the opponent piece at that square
             capt = True #capturing
         #en-passant
-        if type(self).__name__ is "Pawn" and self.enPassant is True: #capturing by en-passant - the only case where
+        if type(self).__name__ == "Pawn" and self.enPassant == True: #capturing by en-passant - the only case where
             #a piece does not capture an opponent's piece on the destination square
             if self.colour == "B" and self.dct1[self.board[str(newPos[0])+str(int(newPos[1])+1)].text] == "wP":
                 self.captured_icons = self.capturePiece(str(newPos[0])+str(int(newPos[1])+1), self.captured_icons)
@@ -618,10 +617,10 @@ class Pieces:
         self.resetBoard() #resets the board
 
         ##
-        if type(self).__name__ is "King": #castling is a king move
+        if type(self).__name__ == "King": #castling == a king move
             try:
-                if self.castling is True: #castling is permitted
-                    if math.fabs(int(newPos[0]) - int(self.position[0])) > 1: #king is moving more than one square
+                if self.castling == True: #castling == permitted
+                    if math.fabs(int(newPos[0]) - int(self.position[0])) > 1: #king == moving more than one square
                         if self.colour == "W":
                             if newPos == "31": #king goes to c1, rook goes to d1; queenside
                                 pos = "11"
@@ -649,8 +648,8 @@ class Pieces:
             except TypeError:
                 pass
 
-        if type(self).__name__ is "Pawn":
-            if capt is True:
+        if type(self).__name__ == "Pawn":
+            if capt == True:
                 self.currentMove += self.rank_file[int(self.position[0])] #keeping track of moves in standard notation
             else:
                 pass
@@ -658,18 +657,18 @@ class Pieces:
             self.currentMove += "N" #keeping track of moves in standard notation, N prefixed for knight
         else: #keeping track of moves in standard notation, first letter of piece prefixed
             self.currentMove += type(self).__name__[0]
-        if capt is True:
+        if capt == True:
             self.currentMove += "x" #keeping track of moves in standard notation, x denotes capture
         self.currentMove += self.rank_file[int(newPos[0])] #keeping track of moves in standard notation, file of new pos
         self.currentMove += newPos[1] #keeping track of moves in standard notation, rank of new pos
-        if type(self).__name__ is "Pawn":
-            if self.enPassant is True:
+        if type(self).__name__ == "Pawn":
+            if self.enPassant == True:
                 self.currentMove += "e.p." #keeping track of moves in standard notation, e.p. denotes en-passant capture
             self.enPassant = False
         #check to see if castling has occured
-        if type(self).__name__ is "King":
+        if type(self).__name__ == "King":
             try:
-                if self.castling is not False:
+                if self.castling != False:
                     #keeping track of moves, O-O/O-O-O denotes kingside/queenside castling respectivly
                     if self.castling[1] == "L": #castling queenside
                         self.currentMove = "O-O-O"
@@ -679,7 +678,7 @@ class Pieces:
             except TypeError:
                 pass
         #checking to see if a pawn can be promoted
-        if type(self).__name__ is "Pawn":
+        if type(self).__name__ == "Pawn":
             #pawn has reached the other end of the board
             if self.colour == "W" and newPos[1] == "8":
                 self.promote() #pawn can be promoted, i.e. traded for a more valuable piece (K/B/R/Q)
@@ -692,27 +691,27 @@ class Pieces:
 
         #checking to see if the game has ended
         if self.colour == "W":
-            if self.bKing.underThreat() is True: #black is in check
+            if self.bKing.underThreat() == True: #black == in check
                 checkMate = self.bKing.checkmate(self) #boolean to test for checkmate
-                if checkMate is False:
+                if checkMate == False:
                     self.bKing.check(self) #boolean to test for check
                 else:
                     winner = game.turn[0] #game ends in checkmate - white has won
                     self.board[self.bKing.position]["bg"] = "firebrick4"
             else:
-                if self.bKing.stalemate() is True: #test for stalemate
+                if self.bKing.stalemate() == True: #test for stalemate
                     print("1/2-1/2", end="")
                     game.endGame("SM") #game ends by stalemate
         else:
-            if self.wKing.underThreat() is True: #white is in check
+            if self.wKing.underThreat() == True: #white == in check
                 checkMate = self.wKing.checkmate(self) #boolean to test for checkmate
-                if checkMate is False:
+                if checkMate == False:
                     self.wKing.check(self) #boolean to test for check
                 else:
                     winner = game.turn[0] #game ends in checkmate - black has won
                     self.board[self.wKing.position]["bg"] = "firebrick4"
             else:
-                if self.wKing.stalemate() is True: #test for stalemate
+                if self.wKing.stalemate() == True: #test for stalemate
                     print("1/2-1/2", end = "")
                     game.endGame("SM") #game ends by stalemate
 
@@ -725,7 +724,7 @@ class Pieces:
                     #within the last 50 moves
             else:  #game drawn by 50 move rule
                 game.endGame("50")
-        except IndexError: #game is less than 50 moves long
+        except IndexError: #game == less than 50 moves long
             pass
 
         #mapping the move number to piece moved
@@ -748,8 +747,10 @@ class Pieces:
         except NameError:
             pass
 
-        winsound.PlaySound("chess_piece_sound", winsound.SND_FILENAME) #play sound of piece being placed
-
+        try:
+            winsound.PlaySound("chess_piece_sound", winsound.SND_FILENAME) #play sound of piece being placed
+        except NameError:
+            print("Log: winsound not imported")
 
         #highlight last move
         self.board[oldPos]["bg"] = "light slate blue"
@@ -764,31 +765,31 @@ class Pieces:
 
         game.turn.reverse() #other player's turn
         #checking if the computer can play
-        if playAI.get() is True and playerColour.get()!=game.turn[0]:
+        if playAI.get() == 2 and playerColour.get()!=game.turn[0]:
             ai.makeMove(levelAI.get(), Pieces.pieces, game.turn[0], self.board)
 
         if game.turn[0] == "W": #so that the player looks at the board from their colour's perspective
             game.btn1.config(text="White to play", bg="linen", fg="black")
-            if boardFlip.get() is True:  #flips the board every move (if enabled)
+            if boardFlip.get() == True:  #flips the board every move (if enabled)
                 game.switchSides(False)
         else:
             game.btn1.config(text="Black to play", bg="black", fg="linen")
-            if boardFlip.get() is True:  #flips the board every move (if enabled)
+            if boardFlip.get() == True:  #flips the board every move (if enabled)
                 game.switchSides(True)
 
-    def underThreat(self, getCheckingPiece=False): #function to check if a piece is under threat
+    def underThreat(self, getCheckingPiece=False): #function to check if a piece == under threat
         #(i.e. being attacked) by an opponent piece
         for piece in [x for x in self.pieces if x.colour != self.colour]: #iterates over the list of enemy pieces; #optimise change to generator
             #a piece can't be threatened by its own coloured pieces
             piece.legalMoves() #generates a list of legal moves for each piece
-            if self.position in piece.legal_moves: #to check if the current piece's location is within those legal moves
+            if self.position in piece.legal_moves: #to check if the current piece's location == within those legal moves
                 self.board[piece.position]["bg"] = "red"
-                if getCheckingPiece is True:
+                if getCheckingPiece == True:
                     return piece #returns the piece checking the king
                 else:
-                    return True #piece is under threat
+                    return True #piece == under threat
         self.resetBoard()
-        return False #piece is not under threat
+        return False #piece != under threat
 
     def capturePiece(self, newPos, captured_icons): #captures an opponent's piece when the player's piece lands on the same square
 
@@ -800,15 +801,15 @@ class Pieces:
                 self.pieces.remove(piece) #remove piece from list of active pieces
                 try:
 
-                    if type(self).__name__ is not "Pawn" or \
-                            (type(self).__name__ is "Pawn" and self.enPassant is False):
+                    if type(self).__name__ != "Pawn" or \
+                            (type(self).__name__ == "Pawn" and self.enPassant == False):
                         filename=self.board[newPos].text #piece name
                         captured_icons.append(filename)
                 except (AttributeError, IndexError):
                     pass
                 break
-            if type(self).__name__ is "Pawn":
-                if self.enPassant is True:
+            if type(self).__name__ == "Pawn":
+                if self.enPassant == True:
                     if self.colour == "B" and self.dct1[self.board[newPos].text] == "wP":
                         capt = True
                         self.captured.append(piece) #capture opponent piece
@@ -856,13 +857,13 @@ class Pieces:
 
         #checking for draw by insufficient material
         for piece in self.pieces:
-            if type(piece).__name__ is "Pawn" or type(piece).__name__ is "Queen" or \
-                type(piece).__name__ is "Rook" or type(piece).__name__ is "Bishop":
-                break #Pawn/Rook/2 Bishops/Queen is sufficient material to win
+            if type(piece).__name__ == "Pawn" or type(piece).__name__ == "Queen" or \
+                type(piece).__name__ == "Rook" or type(piece).__name__ == "Bishop":
+                break #Pawn/Rook/2 Bishops/Queen == sufficient material to win
         else:
             game.endGame("IM")  #insufficient material (pieces) for the game to end by checkmate
-        bishopsW = [t for t in self.pieces if type(t).__name__ is "Bishop" and t.colour == "W"]
-        bishopsB = [t for t in self.pieces if type(t).__name__ is "Bishop" and t.colour == "B"]
+        bishopsW = [t for t in self.pieces if type(t).__name__ == "Bishop" and t.colour == "W"]
+        bishopsB = [t for t in self.pieces if type(t).__name__ == "Bishop" and t.colour == "B"]
         bPieces = [f for f in self.pieces if f.colour == "B"]
         wPieces = [g for g in self.pieces if g.colour == "W"]
         try:
@@ -885,49 +886,49 @@ class Pieces:
         self.position = position #current position set to new position
 
         #checks which child class runs this method so the appropriate piece can be placed
-        if type(self).__name__ is "Pawn": #placing a pawn
+        if type(self).__name__ == "Pawn": #placing a pawn
             if self.colour == "B":
                 self.board[self.position]["text"] = self.BP
                 self.board[self.position].text = self.BP
             elif self.colour == "W":
                 self.board[self.position]["text"] = self.WP
                 self.board[self.position].text = self.WP
-        elif type(self).__name__ is "Bishop": #placing a bishop
+        elif type(self).__name__ == "Bishop": #placing a bishop
             if self.colour == "B":
                 self.board[self.position]["text"] = self.BB
                 self.board[self.position].text = self.BB
             elif self.colour == "W":
                 self.board[self.position]["text"] = self.WB
                 self.board[self.position].text = self.WB
-        elif type(self).__name__ is "Knight": #placing a knight
+        elif type(self).__name__ == "Knight": #placing a knight
             if self.colour == "B":
                 self.board[self.position]["text"] = self.BN
                 self.board[self.position].text = self.BN
             elif self.colour == "W":
                 self.board[self.position]["text"] = self.WN
                 self.board[self.position].text = self.WN
-        elif type(self).__name__ is "Rook": #placing a rook
+        elif type(self).__name__ == "Rook": #placing a rook
             if self.colour == "B":
                 self.board[self.position]["text"] = self.BR
                 self.board[self.position].text = self.BR
             elif self.colour == "W":
                 self.board[self.position]["text"] = self.WR
                 self.board[self.position].text = self.WR
-        elif type(self).__name__ is "Queen": #placing a queen
+        elif type(self).__name__ == "Queen": #placing a queen
             if self.colour == "B":
                 self.board[self.position]["text"] = self.BQ
                 self.board[self.position].text = self.BQ
             elif self.colour == "W":
                 self.board[self.position]["text"] = self.WQ
                 self.board[self.position].text = self.WQ
-        elif type(self).__name__ is "King": #placing a king
+        elif type(self).__name__ == "King": #placing a king
             if self.colour == "B":
                 self.board[self.position]["text"] = self.BK
                 self.board[self.position].text = self.BK
             elif self.colour == "W":
                 self.board[self.position]["text"] = self.WK
                 self.board[self.position].text = self.WK
-        #keeping track of what type of piece is at that position
+        #keeping track of what type of piece == at that position
         self.board[self.position].occupier = type(self).__name__
 
 class King(Pieces): #king class - both kings are instances
@@ -935,13 +936,13 @@ class King(Pieces): #king class - both kings are instances
     def __init__(self, root, frame, grid, colour, board): #inherits from parent class (Pieces)
          super().__init__(root, frame, grid, colour, board)
 
-    def check(self, activePiece=None): #evaluates whether the king is in check
-        #activePiece is the piece that has just been moved
-        if self.underThreat() is True and activePiece is not None:
+    def check(self, activePiece=None): #evaluates whether the king == in check
+        #activePiece == the piece that has just been moved
+        if self.underThreat() == True and activePiece != None:
             activePiece.currentMove += "+" #+ indicates a check in standard move notation
             return True
         else:
-            return self.underThreat() #returns whether the king is under threat from an enemy piece
+            return self.underThreat() #returns whether the king == under threat from an enemy piece
 
     def checkmate(self, activePiece): #evaluates whether the king has been checkmated
         for piece in [x for x in self.pieces if x.colour == self.colour]: #iterates over friendly pieces #optimise change to generator
@@ -951,7 +952,7 @@ class King(Pieces): #king class - both kings are instances
                 continue
             else: #player has at least one legal move (any piece) so not checkmate
                 return False
-        activePiece.currentMove += "#" #player is checkmated
+        activePiece.currentMove += "#" #player == checkmated
         return True
 
     def stalemate(self): #evaluates whether the player has been stalemated
@@ -962,7 +963,7 @@ class King(Pieces): #king class - both kings are instances
                 continue
             else:  #player has at least one legal move (any piece) so not stalemate
                 return False
-        return True #player is stalemated
+        return True #player == stalemated
 
 
 class Queen(Pieces): #queen class - all queens are instances
@@ -1002,7 +1003,7 @@ class Pawn(Pieces): #pawn class - all pawns are instances
         promoteChoice.attributes("-topmost", True)
         self.promoteVar = StringVar() #keeps track of promotion choice
         self.promoteVar.set(None)
-        if playAI.get() is True and self.colour!=playerColour: #playing against the computer and its the computer's turn
+        if playAI.get() == 2 and self.colour!=playerColour: #playing against the computer and its the computer's turn
             self.promoteVar.set("Queen") #computer always promotes to queen
             self.__class__ = Queen  #changing the instance's (current pawn) class to queen; pawn becomes queen
             self.currentMove += "Q"  #move notation for promotion to queen (queening)
@@ -1013,7 +1014,7 @@ class Pawn(Pieces): #pawn class - all pawns are instances
                 r.pack(anchor = W)
             promoteChoice.focus_force()
             while True: #forces the user to pick a promotion or cancel move
-                #since promotion is not optional (a pawn cannot stay on the player's last rank)
+                #since promotion != optional (a pawn cannot stay on the player's last rank)
                 if self.promoteVar.get() == "Queen": #promotion to queen
                     self.__class__ = Queen #changing the instance's (current pawn) class to queen; pawn becomes queen
                     self.currentMove += "Q" #move notation for promotion to queen (queening)
@@ -1049,7 +1050,7 @@ class Chess:
         self.board = [str(j)+str(i) for i in range(1, 9) for j in range(1, 9)] #variables to keep track of the
         #chess board using coordinates, e.g. a1, c2, f7 or g3
         self.grid = [ ] #keeps track of grid squares (emulated by Tkinter buttons)
-        self.turn = ["W", "B"] #keeps track of whose turn it is by reversing every move
+        self.turn = ["W", "B"] #keeps track of whose turn it == by reversing every move
 
     def createBoard(self): #making a board
         #setting up GUI frames
@@ -1085,7 +1086,7 @@ class Chess:
         grid_size = 8
         grid_counter = grid_size ** 2
         row = 1
-        #each grid square on the chess board is a button with a relevant command for moving pieces
+        #each grid square on the chess board == a button with a relevant command for moving pieces
         #creating buttons to fill the grid, as many as necessary, depending on grid size, in this case 8x8
         for i in range(grid_counter, 0, -1):
             column = i % grid_size #calculating the column in which to put the button
@@ -1156,7 +1157,7 @@ class Chess:
             if i % grid_size == 0 and i != (grid_size ** 2): #calculating the row in which to put the label
                 row += 1
 
-            if white_down is True:
+            if white_down == True:
                 self.grid[i-1].grid(row = row, column = column, sticky=N+S+E+W) #positioning grid squares
                 self.btn2.config(command = lambda: self.switchSides(False))
             else:
@@ -1214,7 +1215,7 @@ class Chess:
             else:
                 self.boardMap[i]["bg"] = "ivory2"
         
-        possible_moves = { } #dictionary to hold possible moves, each piece is a key with its respective moves as items
+        possible_moves = { } #dictionary to hold possible moves, each piece == a key with its respective moves as items
         for piece in [x for  x in Pieces.pieces if x.colour==self.turn[0]]: #iterating over all the player's pieces
             piece.legalMoves()
             possible_moves[piece] = [ ]
@@ -1238,12 +1239,12 @@ class Chess:
     def startGame(self):
         for obj in gc.get_objects(): #iterating over instances of objects
             for x in self.boardMap: #iterating over locations on the board
-                if isinstance(obj, Pieces): #object is a piece
+                if isinstance(obj, Pieces): #object == a piece
                     buttonCommand = self.displayLegalMoves(obj)
-                    if obj.position == x: #piece is at position x
+                    if obj.position == x: #piece == at position x
                         self.boardMap[x]["command"] = buttonCommand #clicking on the piece at position x will display
                         #the piece's legal moves
-        if playAI.get() is True and playerColour.get() != game.turn[0]:
+        if playAI.get() == 2 and playerColour.get() != game.turn[0]:
             ai.makeMove(levelAI.get(), Pieces.pieces, game.turn[0], self.boardMap)
 
 
@@ -1280,12 +1281,14 @@ class Chess:
         
 
 #setting up the GUI
+#todo: add multiplayer setting
 def menu():
-    global master, root, boardFlip, playAI, playerColour, levelAI
+    global master, root, boardFlip, playOnline, playAI, playerColour, levelAI
     master=Tk()
     master.title("Chess")
     master.resizable(0,0)
-    master.iconbitmap(default = "chess.ico")
+    if (sys.platform.startswith("win")):
+        master.iconbitmap(default="chess.ico")
     master.attributes("-topmost", True)
     master.geometry("325x350")
     root = Toplevel(master)
@@ -1295,7 +1298,8 @@ def menu():
     root.withdraw()
     #setting variables that will control preferences throughout the game
     boardFlip = BooleanVar(master, value=False)
-    playAI = BooleanVar(master, value=True)
+    playOnline = BooleanVar(master, value=True)
+    playAI = IntVar(master, value=0) #0 = play a person local, #1 = play online, #2 = play ai
     playerColour = StringVar(master, value="W")
     levelAI = IntVar(master, value=2)
     #setting up the main menu with buttons and labels to start the game and select preferences
@@ -1304,9 +1308,13 @@ def menu():
     #starts game
     btn1 = Button(master, text="Start Game", font="Verdana 18", command=lambda: start(master, root))
     btn1.pack(fill=X)
-    #sets number of players; either 1v1 or 1vAI
-    btn2 = Checkbutton(master, text="Play against computer", font="Verdana 14", variable=playAI)
+    #sets number of players; either 1v1 (local/online) or 1vAI
+    btn2 = Radiobutton(master, text="Play against a person online", font="Verdana 14", variable=playAI, value=0)
     btn2.pack(fill=X)
+    btn3 = Radiobutton(master, text="Play against a person (local)", font="Verdana 14", variable=playAI, value=1)
+    btn3.pack(fill=X)
+    btn4 = Radiobutton(master, text="Play against computer", font="Verdana 14", variable=playAI, value=2)
+    btn4.pack(fill=X)
     #sets level of AI to play against
     lbl3 = Label(master, text="Computer level:", font="Verdana 12")
     lbl3.pack()
@@ -1317,23 +1325,25 @@ def menu():
     lbl2.pack()
     fr=Frame(master)
     fr.pack()
-    btn3 = Radiobutton(fr, text="White", font="Verdana 10", variable=playerColour, value="W")
-    btn3.pack(side="left")
-    btn4 = Radiobutton(fr, text="Black", font="Verdana 10", variable=playerColour, value="B")
-    btn4.pack(side="right")
-    #button to auto-flip the board so the player whose turn it is sees it from a native perspective
+    btn5 = Radiobutton(fr, text="White", font="Verdana 10", variable=playerColour, value="W")
+    btn5.pack(side="left")
+    btn6 = Radiobutton(fr, text="Black", font="Verdana 10", variable=playerColour, value="B")
+    btn6.pack(side="right")
+    #button to auto-flip the board so the player whose turn it == sees it from a native perspective
     bFlip = Checkbutton(master, text="Auto-flip board", font="Verdana 14", variable=boardFlip)
     bFlip.pack(fill=X)
-    btn5 = Button(master, text="How to play", font="Verdana 18", bd=0, \
+    btn7 = Button(master, text="How to play", font="Verdana 18", bd=0, \
                   command=lambda:webbrowser.open_new("https://www.chess.com/learn-how-to-play-chess"))
-    btn5.pack(fill=X, side=BOTTOM)
+    btn7.pack(fill=X, side=BOTTOM)
     btn2.config(command=lambda: enable_disable)
+    btn3.config(command=lambda: enable_disable)
     #block option to play as w/b if there are two players
     def enable_disable():
-        btn3.config(state=DISABLED if playAI.get() is False else NORMAL)
-        btn4.config(state=DISABLED if playAI.get() is False else NORMAL)
-        scl.config(state=DISABLED if playAI.get() is False else NORMAL)
-    btn2.config(command=enable_disable)
+        #todo: this does not work correctly
+        btn5.config(state=DISABLED if (playAI.get() == 0 or playAI.get() == 1) else NORMAL)
+        btn6.config(state=DISABLED if (playAI.get() == 0 or playAI.get() == 1) else NORMAL)
+        scl.config(state=DISABLED if (playAI.get() == 0 or playAI.get() == 1) else NORMAL)
+    btn4.config(command=enable_disable)
 
 def start(master, root): #starts the program by creating the GUI windows
     global game
